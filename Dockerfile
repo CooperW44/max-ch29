@@ -1,18 +1,24 @@
-#bashCopy code
-# Use the official Node.js image as the base image
-FROM node:23
+# Use a stable LTS version of Node.js (20-alpine recommended for minimal size)
+FROM node:20-alpine
 
-# Set the working directory in the container
+# Set working directory
 WORKDIR /app
 
-# Copy the application files into the working directory
-COPY . /app
+# Copy package.json and package-lock.json first for caching optimization
+COPY package*.json ./
 
-# Install the application dependencies
-RUN npm install
+# Install dependencies (production only for a leaner image)
+RUN npm install --production
 
-# Define the entry point for the container
+# Copy the rest of your app files
+COPY . .
+
+# Expose the correct application port (ensure your app actually listens on this port)
+EXPOSE 3000
+
+# Use a non-root user for better security
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+
+# Clearly defined start command
 CMD ["npm", "start"]
-
-#Expose port 80 for web server
-EXPOSE 80
